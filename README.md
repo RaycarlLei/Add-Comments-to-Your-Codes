@@ -15,14 +15,14 @@ This script is open source, you can [check the source code here](https://github.
 ## User Guide
 
 1. Click [this link](https://raw.githubusercontent.com/RaycarlLei/Add-Comments-to-Your-Codes/main/auto_comment_GUI_English_github.zip) to download the project zip file.
-2. Unzip the project file. Open the unzipped folder and find auto_comment_GUI_github_v2.zip.
-3. Unzip auto_comment_GUI_github_v2.zip.
-4. Navigate to the unzipped file directory auto_comment_GUI_github_v2\dist\run.
+2. Unzip the project file. Open the unzipped folder and find auto_comment_GUI_English_github.zip.
+3. Unzip auto_comment_GUI_English_github.zip.
+4. Navigate to the unzipped file directory auto_comment_GUI_English_github\dist\run.
 5. Find run.exe and double-click to run it.
 6. Enter your OpenAI API key. If you do not have an OpenAI API key, please refer to [How to get the OpenAI API key](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#how-to-get-the-openai-api-key).
 7. Make sure there are no lines in your input code file that exceed 1000 characters. It is recommended to save the code in a .txt file.
-8. Choose the paths for the input and output files, and the encoding method when opening the files.
-9. Click 'Run Script' to start the commenting process.
+8. Select the file paths for input and output, along with the encoding method for file opening.
+9. Click 'RUN' to start the commenting process.
 10. Please wait patiently.
 11. After the operation is complete, the output file will be saved as a .txt file and will open automatically.
 
@@ -40,4 +40,4 @@ This script is open source, you can [check the source code here](https://github.
 1. If you do not have an API, you can get your API from [this link](https://platform.openai.com/account/api-keys).
 2. After registration or login, click on View API keys on the right, then click Create new secret key, name the Key, and you can generate a new API Key.
 3. Remember to copy and save this API Key immediately after it is generated. This Key will only be displayed once, and if you forget to save it, you will need to create it again.
-4. Follow the [user guide](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#user-guide) to run the script, and enter the API Key in the "Enter your OpenAI API Key below." section. Or save the API Key in the api_key.txt file in the run folder.
+4. Follow the [User Guide](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#user-guide) to run the script, and enter the API Key in the "Enter your OpenAI API Key below." section. Or save the API Key in the api_key.txt file in the run folder.

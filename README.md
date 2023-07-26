@@ -15,9 +15,9 @@ This script is open source, you can [check the source code here](https://github.
 ## User Guide
 
 1. Click [this link](https://raw.githubusercontent.com/RaycarlLei/Add-Comments-to-Your-Codes/main/auto_comment_GUI_English_github.zip) to download the project zip file.
-2. Unzip the project file. Open the unzipped folder and find auto_comment_GUI_English_github.zip.
-3. Unzip auto_comment_GUI_English_github.zip.
-4. Navigate to the unzipped file directory auto_comment_GUI_English_github\dist\run.
+2. Unzip the project file. Open the unzipped folder and find __auto_comment_GUI_English_github.zip__.
+3. Unzip __auto_comment_GUI_English_github.zip__.
+4. Navigate to the unzipped file directory __auto_comment_GUI_English_github\dist\run__.
 5. Find run.exe and double-click to run it.
 6. Enter your OpenAI API key. If you do not have an OpenAI API key, please refer to [How to get the OpenAI API key](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#how-to-get-the-openai-api-key).
 7. Make sure there are no lines in your input code file that exceed 1000 characters. It is recommended to save the code in a .txt file.

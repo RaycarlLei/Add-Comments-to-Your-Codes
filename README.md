@@ -12,7 +12,7 @@ This Python script whips up comments for your long code.
 
 This script is open source, you can [check the source code here](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes/blob/main/run.py).
 
-## User Guide
+## Getting Start
 
 1. Click [this link](https://raw.githubusercontent.com/RaycarlLei/Add-Comments-to-Your-Codes/main/auto_comment_GUI_English_github.zip) to download the project zip file.
 2. Unzip the project file. Open the unzipped folder and find __auto_comment_GUI_English_github.zip__.
@@ -40,4 +40,4 @@ This script is open source, you can [check the source code here](https://github.
 1. If you do not have an API, you can get your API from [this link](https://platform.openai.com/account/api-keys).
 2. After registration or login, click on View API keys on the right, then click Create new secret key, name the Key, and you can generate a new API Key.
 3. Remember to copy and save this API Key immediately after it is generated. This Key will only be displayed once, and if you forget to save it, you will need to create it again.
-4. Follow the [User Guide](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#user-guide) to run the script, and enter the API Key in the "Enter your OpenAI API Key below." section. Or save the API Key in the api_key.txt file in the run folder.
+4. Follow the [Getting Start](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes#user-guide) to run the script, and enter the API Key in the "Enter your OpenAI API Key below." section. Or save the API Key in the api_key.txt file in the run folder.

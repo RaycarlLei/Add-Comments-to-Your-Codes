@@ -4,7 +4,7 @@ import ctypes
 import threading
 import shutil
 import datetime
-import requests
+import requests.exceptions
 import tkinter as tk
 from tkinter import filedialog
 import tkinter.scrolledtext as tkst
@@ -13,8 +13,26 @@ from tkinter import messagebox
 import webbrowser
 from tkinter import *
 import subprocess
+from tkinter import filedialog
 
 install_package = lambda package: subprocess.check_call(["python", "-m", "pip", "install", "--user", package], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL)
+
+import subprocess
+
+try:
+    import requests
+except ImportError:
+    result = subprocess.run(['pip', 'install', 'requests'], capture_output=True, text=True)
+    if result.returncode != 0:
+        print("Requests install failed！")
+        print(result.stderr)
+
+import requests
+
+
+
+
+
 
 def show_popup(message):
     popup = tk.Tk()
@@ -76,7 +94,6 @@ def open_link(event, link):
     webbrowser.open(link) 
 
 def update_time():
-    global update
     if update:
         total_time = time.time() - start_time
         minutes = (int)(total_time // 60)
@@ -163,7 +180,35 @@ def write_file(formatted_now, annotated_code):
         output_text.insert(tk.END, 'There is no output\n')
         return None
 
-def save_text():
+def write_file_path_cache(file_path):
+    if not os.path.isfile("file_path_cache.txt"):
+        with open("file_path_cache.txt", "w") as file:
+            file.write(file_path)
+    else:
+        with open("file_path_cache.txt", "w") as file:
+            file.write(file_path)
+
+
+def save_text_from_file():
+    global custom_prompt_entry, prompt_path, prompt_file_path, prompt_combobox_value, prompt_combobox, entry, window, folder_path
+    custom_prompt_entry = entry.get("1.0", tk.END)
+    prompt_combobox_value = prompt_combobox.get()
+    prompt_file_path = prompt_path.get()
+
+    if prompt_combobox_value == 'Read from file' and os.path.isfile(prompt_file_path):
+        with open(prompt_file_path, 'w', encoding='utf-8') as file:
+            file.truncate(0)
+            file.write(custom_prompt_entry)
+
+    prompt_path_cache_file = os.path.join(folder_path, 'prompt_path_cache.txt')
+    if not os.path.exists(prompt_path_cache_file):
+        with open(prompt_path_cache_file, 'w', encoding='utf-8') as file:
+            file.write(prompt_path.get())
+    window.destroy()
+
+
+def save_text_from_entry():
+    global custom_prompt_entry
     custom_prompt_entry = entry.get()
     window.destroy()
 
@@ -173,14 +218,34 @@ def stop_annotation_code():
     global stop_thread
     stop_thread = True
     update_time()
-    output_text.insert(tk.END, f'**Thread will stop after the last web request completed\n**Please wait patiently\n')
+    output_text.insert(tk.END, f'\n**Thread will stop after the last web request completed**\n')
     
 
 def browse_file(file_path_entry):
     global filename
     filename = filedialog.askopenfilename()
-    file_path_entry.delete(0, tk.END)
+    if file_path_entry.get():
+        file_path_entry.delete(0, tk.END)
     file_path_entry.insert(0, filename)
+
+def browse_prompt_file(prompt_path,entry):
+    prompt_file_path = filedialog.askopenfilename(filetypes=[('Text files', '*.txt')])
+
+    if prompt_file_path:
+        prompt_path.delete(0, tk.END)
+        prompt_path.insert(tk.END, prompt_file_path)
+
+        if prompt_file_path.endswith('.txt'):
+            if os.path.isfile(prompt_file_path):
+                with open(prompt_file_path, 'r',encoding='utf-8') as file:
+                    content = file.read()
+                    entry_exists = entry.get("1.0", tk.END)
+                    if content and entry_exists:
+                        entry.delete("1.0", tk.END)
+                        entry.insert(tk.END, content)
+            else:
+                tk.popup('File does not exists')  
+
 
 def browse_folder(folder_path_entry):
     global foldername
@@ -189,8 +254,41 @@ def browse_folder(folder_path_entry):
     folder_path_entry.insert(0, foldername)
 
 def handle_selection(event):
-    if prompt_combobox.get() == '**customized prompt**':
-        global entry, window
+    global entry, window, prompt_path, prompt_file_path
+    if prompt_combobox.get() == 'Read from file':
+        
+        window = tk.Toplevel(root)
+        window.title('Read custom prompt from file:')
+        window.geometry('830x790')
+
+        entry = tk.Text(window, width=100, height=35)
+        entry.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky=tk.N)
+
+
+        prompt_path = tk.Entry(window, width=80)
+        prompt_path.grid(row=1, column=0, columnspan=2, padx=10, pady=20, sticky=tk.W)
+        if os.path.exists(os.path.join(folder_path, 'prompt_path_cache.txt')):
+            with open(os.path.join(folder_path, 'prompt_path_cache.txt'), 'r', encoding='utf-8') as file:
+                prompt_path.insert(tk.END, file.read())
+            with open(prompt_path.get(), 'r',encoding='utf-8') as file:
+                content = file.read()
+                entry.insert(tk.END, content)
+
+        browse_button_prompt = tk.Button(window, text='Browse', command=lambda: browse_prompt_file(prompt_path,entry))
+        browse_button_prompt.grid(row=2, column=0, sticky=tk.W, padx=30)
+        
+        
+        save_button = tk.Button(window, text='\n          Save          \n', command=save_text_from_file)
+        save_button.grid(row=3, column=1, sticky=tk.E, pady=10,padx=10)
+        
+        close_button = tk.Button(window, text=' Exit ', command=lambda: window.destroy())
+        close_button.grid(row=3, column=0, sticky=tk.E, pady=10,padx=10)
+
+        # window.attributes("-topmost", True)
+        window.mainloop()
+        return
+    elif prompt_combobox.get() == '**customized prompt**':
+        
         window = tk.Toplevel(root)
         window.title('Please enter your own prompt below:')
         window.geometry('410x90')
@@ -200,11 +298,13 @@ def handle_selection(event):
         entry = tk.Entry(window, width=40)
         entry.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky=tk.N)
         
-        save_button = tk.Button(window, text='  Save  ', command=save_text)
+        save_button = tk.Button(window, text='  Save  ', command=save_text_from_entry)
         save_button.grid(row=1, column=0, sticky=tk.E, pady=10,padx=80)
         
         close_button = tk.Button(window, text='Exit', command=lambda: window.destroy())
         close_button.grid(row=1, column=1, sticky=tk.W, pady=10,padx=80)
+        return
+    return
 
 def update_temperature(temp):
     global temperature_value
@@ -223,42 +323,44 @@ def annotate_code(parts):
     minutes = 0
     seconds = 0
     annotated_code = ''
-    model_engine = 'text-davinci-003'
+    model_engine = model_engine_combobox.get()
     output_text.insert(tk.END, f'Model engine has been selected as {model_engine} successfully\n')
     
     start_time = time.time()
-    global update
-    update = True
+
     update_time()
 
     
     progress_bar = ttk.Progressbar(root, orient=tk.HORIZONTAL, length=600, mode='determinate', maximum=100.0, value=1) 
     progress_bar.grid(row=14, column=0, columnspan=2, padx=10, pady=10, sticky=tk.N)
 
-    for i, part in enumerate(parts):
-        if stop_thread:
-            total_time = time.time() - start_time
-            output_text.insert(tk.END, f'Thread stopped\nTotal time taken: {total_time:.2f} seconds\n')
-            stop_thread = False
-            break
+    if model_engine == 'text-davinci-003':
+        for i, part in enumerate(parts):
+            if stop_thread:
+                total_time = time.time() - start_time
+                output_text.insert(tk.END, f'Thread stopped\nTotal time taken: {total_time:.2f} seconds\n')
+                stop_thread = False
+                break
     
-        if prompt_combobox_value == 'Add code comments line by line':
-            prompt = f'"Add code comments for the input line by line. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments to the input. You must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""\n{part}\n"""'
-        elif prompt_combobox_value == 'Add code comments at code block level':
-            prompt = f'Add one English code comments for each code block in the input. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments and must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""\n{part}\n"""'
-        elif prompt_combobox_value == '**customized prompt**':
-            prompt = custom_prompt_entry+f'""\n{part}\n""'
-        part_time = time.time()
-        output_text.insert(tk.END, f'Part {i+1}/{len(parts)} started at {time.strftime("%H:%M:%S", time.localtime())}\n')
+            if prompt_combobox_value == 'Add code comments line by line':
+                prompt = f'"Add code comments for the input line by line. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments to the input. You must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""{part}"""'
+            elif prompt_combobox_value == 'Add code comments at code block level':
+                prompt = f'Add one English code comments for each code block in the input. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments and must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""{part}"""'
+            elif prompt_combobox_value == '**customized prompt**':
+                prompt = custom_prompt_entry+f'""\n{part}\n""'
+            elif prompt_combobox_value == 'Read from file':
+                prompt = custom_prompt_entry+f'""\n{part}\n""'
+            part_time = time.time()
+            output_text.insert(tk.END, f'Part {i+1}/{len(parts)} started at {time.strftime("%H:%M:%S", time.localtime())}\n')
 
-        completions = openai.Completion.create(
-            engine=model_engine,
-            prompt=prompt,
-            max_tokens=2048,
-            n=1,
-            stop=None,
-            temperature=temperature_value,
-        )
+            completions = openai.Completion.create(
+                engine=model_engine,
+                prompt=prompt,
+                max_tokens=2048,
+                n=1,
+                stop=None,
+                temperature=temperature_value,
+            )
 
         output_text.insert(tk.END, f'Part {i+1}/{len(parts)} has already processed\n')
         
@@ -270,6 +372,47 @@ def annotate_code(parts):
         progress_bar['value'] = progress
 
         annotated_code += completions.choices[0].text 
+    elif model_engine == 'gpt-3.5-turbo-16k-0613':
+        for i, part in enumerate(parts):
+            if stop_thread:
+                total_time = time.time() - start_time
+                output_text.insert(tk.END, f'Thread stopped\nTotal time taken: {total_time:.2f} seconds\n')
+                stop_thread = False
+                break
+            if prompt_combobox_value == 'Add code comments line by line':
+                prompt = f'"Add code comments for the input line by line. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments to the input. You must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""{part}"""'
+            elif prompt_combobox_value == 'Add code comments at code block level':
+                prompt = f'Add one English code comments for each code block in the input. The input is delimited by triple quotes. If no comments are necessary, respond with the original input. You can only add comments and must not delete or alter any existing characters, spaces, tabs, line breaks, or special symbols. Adjusting indentation and line breaks are prohibited. You must maintain the origin formating. Your response should not include any explanations. Here is the input:""""{part}"""'
+            elif prompt_combobox_value == '**customized prompt**':
+                prompt = custom_prompt_entry+f'""\n{part}\n""'
+            elif prompt_combobox_value == 'Read from file':
+                prompt = custom_prompt_entry+f'""\n{part}\n""'
+            part_time = time.time()
+            output_text.insert(tk.END, f'Part {i+1}/{len(parts)} started at {time.strftime("%H:%M:%S", time.localtime())}\n')
+
+            completion = openai.Completion.create(
+                engine=model_engine,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": f"{prompt}{part}"},
+                ]
+                # temperature=temperature_value,
+            )
+            output_text.insert(tk.END, completion.choices[0].message)
+            output_text.insert(tk.END, '\n')
+
+            annotated_code += completion.choices[0].message
+            output_text.insert(tk.END, f'Part {i+1}/{len(parts)} has already processed\n')
+            output_text.insert(tk.END, f'This part took {time.time() - part_time:.2f}s\n\n\n')
+            progress = (i+1) / len(parts) * 100.0
+            progress_bar['value'] = progress
+
+        
+
+
+
+
+
 
     total_time = time.time() - start_time
     minutes = total_time // 60
@@ -282,6 +425,36 @@ def annotate_code(parts):
 
 def run_script():
     global file_path_entry, encoding_combobox, prompt_combobox_value, address_out, minutes, seconds, output_text, debug_mode, prompt_combobox, file_path
+
+
+    api_key = api_key_entry.get()
+    try:
+        openai.api_key = api_key
+        response = openai.Engine.list(timeout=2)
+    except requests.exceptions.Timeout:
+        output_text.insert(tk.END, "Can not connect to OpenAI.\n")
+        switch_state()
+        thread.terminate()
+        return
+    except openai.error.AuthenticationError:
+        output_text.insert(tk.END, "Wrong OpenAI API key!\n")
+        switch_state()
+        thread.terminate()
+        return
+    except requests.exceptions.RequestException as e:
+        output_text.insert(tk.END, f"Request ERROR: {str(e)}\n")
+        switch_state()
+        thread.terminate()
+        return
+    finally:
+        if not response:
+            output_text.insert(tk.END, "Can not connect to OpenAI.\n")
+            switch_state()
+            thread.terminate()
+            return
+
+    stop_button['state'] = tk.NORMAL
+
 
     prompt_combobox_value = prompt_combobox.get()
     file_path = file_path_entry.get()
@@ -331,35 +504,16 @@ def run_script():
     return
 
 def run_script_thread():
-    switch_state()
-    api_key = api_key_entry.get()
-    try:
-        timer = threading.Timer(5, handler)
-        timer.start()
-        openai.api_key = api_key
-        openai.Engine.list()
-        timer.cancel()
-    except requests.exceptions.Timeout:
-        output_text.insert(tk.END, "Can not connect to OpenAI.\n")
-    except openai.error.AuthenticationError:
-        output_text.insert(tk.END, "Wrong OpenAI API key!\n")
-    except requests.exceptions.RequestException as e:
-        output_text.insert(tk.END, f"Request ERROR: {str(e)}\n")
-    finally:
-        timer.cancel()
-        switch_state()
-
-        
-    
-
-    global stop_thread
+    global stop_thread, update
     stop_thread = False
+    update = True
     
+    run_button['state'] = tk.DISABLED
 
     file_path = os.path.join(folder_path, 'api_key.txt')
     if not os.path.exists(file_path):
         with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(api_key_entry.get())
+            file.write(api_key)
 
     file_path = os.path.join(folder_path, 'address_out_cache.txt')
     with open(file_path, 'w', encoding='utf-8') as file:
@@ -367,12 +521,13 @@ def run_script_thread():
 
     thread = threading.Thread(target=run_script)
     thread.start()
-    
+
+
     
 
 def run_main():
     global root
-    global file_path_entry, api_key_entry, encoding_combobox, output_text, address_out, debug_mode, folder_path, prompt_combobox, custom_prompt_entry, parts, stop_thread, address_out_path
+    global file_path_entry, api_key_entry, encoding_combobox, output_text, address_out, debug_mode, folder_path, prompt_combobox, custom_prompt_entry, parts, stop_thread, address_out_path, api_key
     
     
     folder_path = os.getcwd()
@@ -394,6 +549,8 @@ def run_main():
             file.write(api_key)
 
     
+
+
     if not os.path.isfile("address_out_cache.txt"):
         with open("address_out_cache.txt", "w") as file:
             file.write("")
@@ -409,8 +566,11 @@ def run_main():
         with open(api_file_path, "w") as file:
             file.write(address_out_value)
 
+
+
+
     root = tk.Tk()
-    root.title("Code Commentator")
+    root.title("DIY script with OpenAI API")
     root.geometry("660x1050")
     root.resizable(width=1, height=1)
 
@@ -461,6 +621,17 @@ def run_main():
     file_path_entry = tk.Entry(root, width=77)
     file_path_entry.grid(row=4, column=0, sticky=tk.W, padx=30)
 
+    if not os.path.isfile("file_path_cache.txt"):
+        with open("file_path_cache.txt", "w") as file:
+            file.write("")
+    else:
+        with open("file_path_cache.txt", "r") as file:
+            file_path_value = file.read().strip()
+            file_path_entry.insert(0, file_path_value)
+    
+    file_path_entry.bind("<KeyRelease>", lambda event: write_file_path_cache(file_path_entry.get()))
+
+
     browse_button_in = tk.Button(root, text="Browse", command=lambda: browse_file(file_path_entry))
     browse_button_in.grid(row=4, column=0, sticky=tk.E, pady=60)
 
@@ -471,7 +642,12 @@ def run_main():
     encoding_combobox.set('utf-8')
     encoding_combobox.grid(row=10, column=0, sticky=tk.W, padx=28)
 
-    prompt_combobox = ttk.Combobox(root, values=['Add code comments line by line', 'Add code comments at code block level','**customized prompt**'], width=34)
+    global model_engine_combobox
+    model_engine_combobox = ttk.Combobox(root, values=['text-davinci-003', 'gpt-3.5-turbo-16k-0613'], width=14)
+    model_engine_combobox.set('text-davinci-003')
+    model_engine_combobox.grid(row=10, column=0, sticky=tk.E, padx=10)
+
+    prompt_combobox = ttk.Combobox(root, values=[ 'Add code comments line by line', 'Add code comments at code block level','**customized prompt**','Read from file'], width=34)
     prompt_combobox.set('Add code comments line by line')
     prompt_combobox.bind('<<ComboboxSelected>>', handle_selection)
     prompt_combobox.grid(row=9, column=0, sticky=tk.E, padx=10)
@@ -479,7 +655,7 @@ def run_main():
     global temperature_label
     temperature_label = tk.Label(root, text="Temperature:")
     temperature_label.grid(row=7, column=0, sticky=tk.W, padx=10)
-    temperature_label.bind("<Enter>", lambda event: temperature_label.config(text="Higher temperature leads to more creative\n but less controlled responses.                    \nRecommended value is 0.5~0.7."))
+    temperature_label.bind("<Enter>", lambda event: temperature_label.config(text="Higher temperature leads to more creative\n but less controlled responses.                    \nRecommended value is 0.4~0.6."))
 
     temperature_label.bind("<Leave>", lambda event: temperature_label.config(text="Temperature:"))
 

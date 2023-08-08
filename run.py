@@ -575,7 +575,7 @@ def run_main():
     root.resizable(width=1, height=1)
 
     stop_thread = False
-    custom_prompt_entry = 'You msut response with the original input. Here is the original input:'
+    custom_prompt_entry = 'You must response with the original input. Here is the original input:'
     
 
     

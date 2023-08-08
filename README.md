@@ -27,6 +27,9 @@ This script is open source, you can [check the source code here](https://github.
 11. After the operation is complete, the output file will be saved as a .txt file and will open automatically.
 ![image](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes/assets/38275852/a8262406-5472-44a9-ae57-da586681ef51)
 
+## What`s New
+1. You can now chuck in your prompt by reading a local txt file.This is ideal for lengthy prompts and a convenient way to save them for future use.
+
 ## Features
 
 - Graphical user interface for easy interaction.

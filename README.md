@@ -10,7 +10,7 @@ This Python script whips up comments for your long code.
 
 **Note**: To run this script, you'll need to make sure your network can connect to the OpenAI API.
 
-This script is open source, you can [check the source code here](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes/blob/main/run.py).
+This script is open-source, you can [check the source code here](https://github.com/RaycarlLei/Add-Comments-to-Your-Codes/blob/main/run.py).
 
 ## Getting Start
 
